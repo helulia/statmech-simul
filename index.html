@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistical Mechanics — Interactive Simulations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<script>
+  // Apply saved theme before first paint to avoid a flash.
+  try {
+    const q = new URLSearchParams(location.search).get('theme');
+    const t = q || localStorage.getItem('statmech-theme');
+    if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <a class="site-title" href="./">Statistical Mechanics — Simulations</a>
+    <span class="crumb">Statistical Thermodynamics · TAU</span>
+    <span class="spacer"></span>
+    <button id="theme-toggle" aria-label="Toggle color theme">light</button>
+  </header>
+
+  <h1>Systems × concepts</h1>
+  <p class="muted">Interactive simulations following the Statistical Thermodynamics course.</p>
+
+  <table class="sitegrid">
+    <thead>
+      <tr>
+        <th></th>
+        <th scope="col">CLT</th>
+        <th scope="col">Ensembles</th>
+        <th scope="col">Entropy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Spins</th>
+        <td class="built"><a href="systems/spins/index.html">Central limit theorem →</a></td>
+        <td class="built"><a href="systems/spins/ensembles.html">Micro ↔ canonical →</a></td>
+        <td class="built"><a href="systems/spins/entropy.html">Equilibration →</a></td>
+      </tr>
+      <tr>
+        <th scope="row" class="small" style="padding-left:28px">↳ Ergodicity</th>
+        <td colspan="3"><span class="cell soon">time average vs ensemble average — coming soon</span></td>
+      </tr>
+      <tr>
+        <th scope="row">Polymer</th>
+        <td><span class="cell soon">coming soon</span></td>
+        <td><span class="cell soon">coming soon</span></td>
+        <td><span class="cell soon">coming soon</span></td>
+      </tr>
+      <tr>
+        <th scope="row">Ideal gas</th>
+        <td><span class="cell soon">coming soon</span></td>
+        <td><span class="cell soon">coming soon</span></td>
+        <td><span class="cell soon">coming soon</span></td>
+      </tr>
+      <tr>
+        <th scope="row">Message</th>
+        <td><span class="cell soon">coming soon</span></td>
+        <td><span class="cell soon">coming soon</span></td>
+        <td><span class="cell soon">coming soon</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<script type="module">
+  import { initTheme } from './assets/js/theme.js';
+  initTheme(document.getElementById('theme-toggle'));
+</script>
+</body>
+</html>

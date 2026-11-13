@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spins · Ensembles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/base.css">
+<script>
+  try {
+    const q = new URLSearchParams(location.search).get('theme');
+    const t = q || localStorage.getItem('statmech-theme');
+    if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+        onload="window.dispatchEvent(new Event('katex-ready'))"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <a class="site-title" href="../../index.html">Statistical Mechanics — Simulations</a>
+    <span class="crumb">Spins / <a href="./index.html">CLT</a> · <strong>Ensembles</strong> · <a href="./entropy.html">Entropy</a></span>
+    <span class="spacer"></span>
+    <button id="theme-toggle" aria-label="Toggle color theme">light</button>
+  </header>
+
+  <h1>Spins in a field: two ensembles</h1>
+  <p class="muted">The same chain of $N$ independent spins $s_i=\pm\tfrac12$, now with an
+  energy $E = -h\,M = -h\sum_i s_i$. Units: $k_B = 1$ and $h$ sets the energy scale, so
+  the only knob is the dimensionless $\beta h$.</p>
+
+  <!-- ================= canonical ================= -->
+  <h2>Canonical: fixed temperature, fluctuating energy</h2>
+  <p class="muted" style="max-width:68ch">A heat bath at inverse temperature $\beta$ makes each microstate
+  appear with weight $e^{-\beta E_\nu}$, so each spin is up with probability
+  $p_\uparrow = \dfrac{1}{1+e^{-\beta h}}$ — this is the promised link $p \leftrightarrow \beta h$
+  from the CLT page.</p>
+
+  <section class="panel" id="hero">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:12px">
+      <h3 style="margin:0">One sample at this $\beta h$</h3>
+      <span style="display:inline-flex; gap:16px">
+        <span class="chip up"><span class="swatch"></span><span class="glyph">↑</span> up (+½)</span>
+        <span class="chip down"><span class="swatch"></span><span class="glyph">↓</span> down (−½)</span>
+      </span>
+    </div>
+    <div id="spin-strip" aria-label="Spin configuration"></div>
+    <canvas id="spin-raster" hidden></canvas>
+    <div class="readout-strip">
+      <span>N↑ = <span class="up-val" id="ro-nup">–</span></span>
+      <span>N↓ = <span class="down-val" id="ro-ndown">–</span></span>
+      <span>M = <span id="ro-m">–</span></span>
+      <span>p↑ = <span id="ro-pup">–</span></span>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:20px">
+    <div class="controls">
+      <div class="ctl">
+        <label for="ctl-bh">βh — field / temperature</label>
+        <div class="row"><input type="range" id="ctl-bh" min="-6" max="6" step="0.05" value="1"><output id="out-bh">1.00</output></div>
+      </div>
+      <div class="ctl">
+        <label for="ctl-n">N — number of spins</label>
+        <div class="row"><input type="range" id="ctl-n" min="0" max="100" step="1" value="50"><output id="out-n">100</output></div>
+      </div>
+      <div class="ctl">
+        <label for="ctl-s">samples</label>
+        <div class="row"><input type="range" id="ctl-s" min="0" max="60" step="1" value="40"><output id="out-s">10 000</output></div>
+      </div>
+      <div class="ctl">
+        <label for="ctl-seed">seed</label>
+        <div class="row">
+          <input type="text" id="ctl-seed" value="20261111" spellcheck="false">
+          <button id="btn-resample" class="primary">Resample</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="two-col" style="margin-top:28px">
+    <div>
+      <h3 style="margin-top:0">Distribution of M at this βh</h3>
+      <section class="panel">
+        <figure class="plot" id="plotDist"></figure>
+        <figcaption class="small muted" style="margin-top:10px">
+          The $h \neq 0$ sketch from Lecture notes 2 p.2: the peak sits at
+          $\langle M\rangle = \tfrac N2 \tanh(\beta h/2) \neq 0$. Bars: samples;
+          hollow dots / dashed: exact binomial; solid: Gaussian.
+        </figcaption>
+      </section>
+    </div>
+    <div>
+      <h3 style="margin-top:0">⟨M⟩ and ⟨δM²⟩ vs βh</h3>
+      <section class="panel">
+        <figure class="plot" id="plotCurves"></figure>
+        <figcaption class="small muted" style="margin-top:10px">
+          Solid: $\langle M\rangle/(N/2) = \tanh(\beta h/2)$. Dashed:
+          $\langle\delta M^2\rangle/(N/4) = \mathrm{sech}^2(\beta h/2)$, which equals
+          $\partial\langle M\rangle/\partial(\beta h)$ normalized — fluctuations are the
+          susceptibility (Chandler Ex. 3.19). Hollow circles: this page's samples.
+        </figcaption>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel" style="margin-top:20px; overflow-x:auto">
+    <table class="readouts">
+      <thead><tr><th>quantity</th><th>sampled</th><th>theory</th></tr></thead>
+      <tbody>
+        <tr><td>mean of M</td><td id="rd-mean">–</td><td id="rd-mean-t">–</td></tr>
+        <tr><td>variance of M (fluctuation)</td><td id="rd-var">–</td><td id="rd-var-t">–</td></tr>
+        <tr><td>susceptibility ∂⟨M⟩/∂(βh)</td><td class="muted">= variance</td><td id="rd-chi-t">–</td></tr>
+        <tr><td>relative width σ_M/⟨M⟩</td><td id="rd-rel">–</td><td id="rd-rel-t">–</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================= microcanonical ================= -->
+  <h2>Microcanonical: fixed energy, counted states</h2>
+  <p class="muted" style="max-width:68ch">Isolate the chain at energy $E$. With the ground state all-up,
+  $E-E_0 = h N_\downarrow$, the degeneracy is $W = \binom{N}{N_\downarrow}$, and
+  $S = k_B \ln W$. The slope gives the temperature:
+  $\beta h = \ln(N_\uparrow/N_\downarrow)$ — negative once $N_\downarrow > N/2$.</p>
+
+  <section class="panel" style="margin-top:4px">
+    <div class="controls">
+      <div class="ctl">
+        <label for="ctl-mn">N — number of spins</label>
+        <div class="row"><input type="range" id="ctl-mn" min="8" max="100" step="1" value="33"><output id="out-mn">20</output></div>
+      </div>
+      <div class="ctl">
+        <label for="ctl-k">E — via N↓ (spins flipped down)</label>
+        <div class="row"><input type="range" id="ctl-k" min="0" max="1000" step="1" value="250"><output id="out-k">5</output></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="two-col" style="margin-top:24px">
+    <div>
+      <section class="panel">
+        <figure class="plot" id="plotS"></figure>
+        <figcaption class="small muted" style="margin-top:10px">
+          Entropy per spin vs energy. Line: Stirling limit
+          $S/N = -[x\ln x + (1-x)\ln(1-x)]$, $x = N_\downarrow/N$. Dots: exact
+          $\ln\binom{N}{N_\downarrow}/N$ for this $N$. $W$ rises, peaks at $E=0$, then
+          <em>falls</em> — the negative-temperature puzzle (Chandler Ex. 3.5).
+        </figcaption>
+      </section>
+    </div>
+    <div>
+      <section class="panel">
+        <figure class="plot" id="plotBeta"></figure>
+        <figcaption class="small muted" style="margin-top:10px">
+          The slope $\beta h = \ln(N_\uparrow/N_\downarrow)$ (Lecture notes 3, boxed:
+          $\langle\beta\rangle = \tfrac1\varepsilon\ln(N/N_e - 1)$). Positive on the left,
+          $\beta = 0$ ($T\to\infty$) at $E = 0$, negative beyond.
+        </figcaption>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel" style="margin-top:20px; overflow-x:auto">
+    <table class="readouts">
+      <thead><tr><th>quantity</th><th colspan="2">value</th></tr></thead>
+      <tbody>
+        <tr><td>N↓, N↑</td><td id="md-k" colspan="2">–</td></tr>
+        <tr><td>W = C(N, N↓)</td><td id="md-w" colspan="2">–</td></tr>
+        <tr><td>S/N = ln W / N</td><td id="md-s" colspan="2">–</td></tr>
+        <tr><td>βh = ln(N↑/N↓)</td><td id="md-beta" colspan="2">–</td></tr>
+        <tr><td>temperature</td><td id="md-temp" colspan="2">–</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="prose" id="explain" style="margin-top:40px">
+    <p class="muted small">loading explanation…</p>
+  </section>
+</div>
+
+<script type="module" src="./ensembles.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+/* Design tokens — black & white editorial, orange = spin up, blue = spin down.
+   Dark is the default theme; light via prefers-color-scheme or manual toggle
+   (data-theme on <html>, persisted in localStorage). */
+
+:root {
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --fg: #F2F2F2;
+  --muted: #8A8A8A;
+  --rule: #2A2A2A;
+  --up: #FF7A1A;   /* spin up (+1/2) ONLY */
+  --down: #2E7BFF; /* spin down (-1/2) ONLY */
+
+  /* derived */
+  --hist: color-mix(in srgb, var(--fg) 35%, transparent);
+  --grid: color-mix(in srgb, var(--muted) 25%, transparent);
+
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --radius: 6px;
+  --ease: 200ms ease-out;
+  --maxw: 1100px;
+  --textw: 68ch;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #FAFAFA;
+    --surface: #FFFFFF;
+    --fg: #111111;
+    --muted: #6B6B6B;
+    --rule: #E4E4E4;
+    --up: #E8650A;
+    --down: #1F63D6;
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --fg: #111111;
+  --muted: #6B6B6B;
+  --rule: #E4E4E4;
+  --up: #E8650A;
+  --down: #1F63D6;
+}

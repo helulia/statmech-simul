@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spins · Entropy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/base.css">
+<script>
+  try {
+    const q = new URLSearchParams(location.search).get('theme');
+    const t = q || localStorage.getItem('statmech-theme');
+    if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+        onload="window.dispatchEvent(new Event('katex-ready'))"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="site-header">
+    <a class="site-title" href="../../index.html">Statistical Mechanics — Simulations</a>
+    <span class="crumb">Spins / <a href="./index.html">CLT</a> · <a href="./ensembles.html">Ensembles</a> · <strong>Entropy</strong></span>
+    <span class="spacer"></span>
+    <button id="theme-toggle" aria-label="Toggle color theme">light</button>
+  </header>
+
+  <h1>Entropy during equilibration</h1>
+  <p class="muted">An ensemble of $N$ independent chains of $\ell$ spins evolves in time:
+  each step, every chain picks one random spin and flips it with probability $\tfrac12$
+  (the dynamics of numerical exercise 1). The Shannon entropy of the ensemble's
+  magnetization distribution, $S(t) = -\sum_M \Pr(M)\log_2 \Pr(M)$, rises toward the
+  steady-state value where all $2^\ell$ microstates are equally likely.</p>
+
+  <!-- hero: the ensemble itself -->
+  <section class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:12px">
+      <h3 style="margin:0">The ensemble <span class="muted small" id="ens-note"></span></h3>
+      <span style="display:inline-flex; gap:16px">
+        <span class="chip up"><span class="swatch"></span><span class="glyph">↑</span> up (+½)</span>
+        <span class="chip down"><span class="swatch"></span><span class="glyph">↓</span> down (−½)</span>
+      </span>
+    </div>
+    <canvas id="ens-raster"></canvas>
+    <div class="readout-strip">
+      <span>t = <span id="ro-t">0</span></span>
+      <span>S(t) = <span id="ro-s">–</span> bits</span>
+      <span>S<sub>steady</sub> = <span id="ro-sss">–</span> bits</span>
+      <span>M̄(t) = <span id="ro-mbar">–</span></span>
+    </div>
+  </section>
+
+  <!-- controls -->
+  <section class="panel" style="margin-top:20px">
+    <div class="controls">
+      <div class="ctl">
+        <label for="ctl-l">ℓ — spins per chain</label>
+        <div class="row"><input type="range" id="ctl-l" min="2" max="20" step="1" value="10"><output id="out-l">10</output></div>
+      </div>
+      <div class="ctl">
+        <label for="ctl-nens">N — chains in the ensemble</label>
+        <div class="row"><input type="range" id="ctl-nens" min="0" max="46" step="1" value="20"><output id="out-nens">100</output></div>
+      </div>
+      <div class="ctl">
+        <label>initial condition</label>
+        <div class="row">
+          <button id="init-up" aria-pressed="true">all ↑</button>
+          <button id="init-down" aria-pressed="false">all ↓</button>
+          <button id="init-random" aria-pressed="false">random</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <label for="ctl-speed">speed — steps per frame</label>
+        <div class="row"><input type="range" id="ctl-speed" min="1" max="50" step="1" value="4"><output id="out-speed">4</output></div>
+      </div>
+      <div class="ctl">
+        <label for="ctl-seed">seed</label>
+        <div class="row"><input type="text" id="ctl-seed" value="20261111" spellcheck="false"></div>
+      </div>
+      <div class="ctl">
+        <label>&nbsp;</label>
+        <div class="row">
+          <button id="btn-play" class="primary">▶ play</button>
+          <button id="btn-step">step</button>
+          <button id="btn-reset">reset</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="two-col" style="margin-top:28px">
+    <div>
+      <h3 style="margin-top:0">Pr(M) of the ensemble at time t</h3>
+      <section class="panel">
+        <figure class="plot" id="plotPdf"></figure>
+        <figcaption class="small muted" style="margin-top:10px">
+          Bars: the ensemble's magnetization distribution now (exercise Task 2.6).
+          Hollow dots: the steady-state $\Pr(M)$ — the exact binomial, all microstates
+          equally likely (Task 1.3).
+        </figcaption>
+      </section>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Entropy and magnetization vs time</h3>
+      <section class="panel">
+        <figure class="plot" id="plotEntropy"></figure>
+        <figure class="plot" id="plotMag" style="margin-top:14px"></figure>
+        <figcaption class="small muted" style="margin-top:10px">
+          $S(t)$ in bits (solid) with the steady-state entropy (dashed), and the
+          ensemble-averaged magnetization $\bar M(t)$ relaxing to
+          $\langle M\rangle = 0$ (exercise Task 2.8).
+        </figcaption>
+      </section>
+    </div>
+  </div>
+
+  <section class="prose" id="explain" style="margin-top:40px">
+    <p class="muted small">loading explanation…</p>
+  </section>
+</div>
+
+<script type="module" src="./entropy.js"></script>
+</body>
+</html>
