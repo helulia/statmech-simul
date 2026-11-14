@@ -30,8 +30,12 @@
   </header>
 
   <h1>A chain of non-interacting spins</h1>
-  <p class="muted">$N$ independent spins $s_i = \pm\tfrac12$, each up with probability
-  $p$; at $h = 0$, $p = \tfrac12$. The total magnetization is $M = \sum_i s_i$.</p>
+  <p class="muted">A chain of $\ell$ independent spins $s_i = \pm\tfrac12$, each up with
+  probability $p$; the total magnetization is $M = \sum_i s_i$. Here $h$ is an external
+  magnetic field coupling to each spin with energy $-h\,s_i$: it biases the chain —
+  $h > 0$ favors ↑ (pushes $p$ above $\tfrac12$), $h &lt; 0$ favors ↓ — and at $h = 0$
+  the spins are unbiased, $p = \tfrac12$. Histograms are built from $N$ independent
+  sample chains.</p>
 
   <!-- ============ hero: current sample ============ -->
   <section class="panel" id="hero">
@@ -45,8 +49,8 @@
     <div id="spin-strip" aria-label="Spin configuration"></div>
     <canvas id="spin-raster" hidden></canvas>
     <div class="readout-strip">
-      <span>N↑ = <span class="up-val" id="ro-nup">–</span></span>
-      <span>N↓ = <span class="down-val" id="ro-ndown">–</span></span>
+      <span>n↑ = <span class="up-val" id="ro-nup">–</span></span>
+      <span>n↓ = <span class="down-val" id="ro-ndown">–</span></span>
       <span>M = <span id="ro-m">–</span></span>
     </div>
   </section>
@@ -55,12 +59,12 @@
   <section class="panel" style="margin-top:20px">
     <div class="controls">
       <div class="ctl">
-        <label for="ctl-n">N — number of spins</label>
-        <div class="row"><input type="range" id="ctl-n" min="0" max="100" step="1" value="50"><output id="out-n">100</output></div>
+        <label for="ctl-l">ℓ — length of chain</label>
+        <div class="row"><input type="range" id="ctl-l" min="0" max="100" step="1" value="50"><output id="out-l">100</output></div>
       </div>
       <div class="ctl">
-        <label for="ctl-s">samples</label>
-        <div class="row"><input type="range" id="ctl-s" min="0" max="60" step="1" value="40"><output id="out-s">10 000</output></div>
+        <label for="ctl-ns">N — chains sampled</label>
+        <div class="row"><input type="range" id="ctl-ns" min="0" max="60" step="1" value="40"><output id="out-ns">10 000</output></div>
       </div>
       <div class="ctl">
         <label for="ctl-seed">seed</label>
@@ -89,9 +93,9 @@
   <!-- ============ presets ============ -->
   <div class="presets" style="margin-top:16px">
     <span class="small muted" style="align-self:center">Try this:</span>
-    <button id="preset-a" title="A single spin: two spikes, no Gaussian at all.">(a) N = 1</button>
-    <button id="preset-b" title="Toggle between N = 10 and N = 1000.">(b) N = 10 ⇄ 1000</button>
-    <button id="preset-c" title="N = 1000, p = 0.002: skewed and Poisson-like — the CLT is true but useless here.">(c) rare up-spins</button>
+    <button id="preset-a" title="A single spin: two spikes, no Gaussian at all.">(a) ℓ = 1</button>
+    <button id="preset-b" title="Toggle between ℓ = 10 and ℓ = 1000.">(b) ℓ = 10 ⇄ 1000</button>
+    <button id="preset-c" title="ℓ = 1000, p = 0.002: skewed and Poisson-like — the CLT is true but useless here.">(c) rare up-spins</button>
   </div>
 
   <!-- ============ Plot A ============ -->
@@ -104,25 +108,25 @@
     <figure class="plot" id="plotA"></figure>
     <figcaption class="small muted" style="margin-top:10px">
       Grey bars: sampled histogram. Hollow dots / dashed: exact binomial
-      $\Pr(M)$. Solid line: Gaussian with $\langle M\rangle$, $\mathrm{Var}(M)=Np(1-p)$,
+      $\Pr(M)$. Solid line: Gaussian with $\langle M\rangle$, $\mathrm{Var}(M)=\ell p(1-p)$,
       times the lattice spacing. <strong>Two different errors:</strong> bars vs dots is
-      <em>sampling noise</em> (shrinks with more samples); dots vs line is the
-      <em>CLT approximation error</em> (shrinks with N). Toggle the overlays to see each.
-      Bins are centered on the allowed values $M \in \{-\tfrac N2, \dots, \tfrac N2\}$,
-      spacing 1 — half-integers when N is odd.
+      <em>sampling noise</em> (shrinks with the number of chains $N$); dots vs line is the
+      <em>CLT approximation error</em> (shrinks with $\ell$). Toggle the overlays to see each.
+      Bins are centered on the allowed values $M \in \{-\tfrac\ell2, \dots, \tfrac\ell2\}$,
+      spacing 1 — half-integers when $\ell$ is odd.
     </figcaption>
   </section>
 
   <!-- ============ Plots B & C ============ -->
   <div class="two-col" style="margin-top:28px">
     <div>
-      <h2 style="margin-top:0">B — narrowing of Pr(M/N)</h2>
+      <h2 style="margin-top:0">B — narrowing of Pr(M/ℓ)</h2>
       <section class="panel">
         <figure class="plot" id="plotB"></figure>
         <figcaption class="small muted" style="margin-top:10px">
-          Exact $\Pr(M/N)$ as a density for several $N$ (the lecture-2 figure):
-          the relative width $\sigma_M/N = 1/(2\sqrt N)$ shrinks even though
-          $\sigma_M = \tfrac12\sqrt N$ grows.
+          Exact $\Pr(M/\ell)$ as a density for several $\ell$ (the lecture-2 figure):
+          the relative width $\sigma_M/\ell = 1/(2\sqrt \ell)$ shrinks even though
+          $\sigma_M = \tfrac12\sqrt \ell$ grows.
         </figcaption>
       </section>
     </div>
@@ -131,8 +135,8 @@
       <section class="panel">
         <figure class="plot" id="plotC"></figure>
         <figcaption class="small muted" style="margin-top:10px">
-          $Z = (M - \langle M\rangle)/\sigma_M$ from the samples against the
-          $\mathcal N(0,1)$ density. As $N$ grows the histogram converges to the curve.
+          $Z = (M - \langle M\rangle)/\sigma_M$ from the sampled chains against the
+          $\mathcal N(0,1)$ density. As $\ell$ grows the histogram converges to the curve.
         </figcaption>
         <p class="small muted" id="plotC-msg" hidden></p>
       </section>
@@ -145,12 +149,12 @@
     <div style="display:flex; gap:14px; align-items:center; margin-bottom:12px; flex-wrap:wrap">
       <button id="anim-play">▶ play</button>
       <input type="range" id="anim-scrub" min="1" max="200" step="1" value="1" style="flex:1; min-width:140px">
-      <output id="anim-n" class="mono">N = 1</output>
+      <output id="anim-n" class="mono">ℓ = 1</output>
     </div>
     <figure class="plot" id="plotAnim"></figure>
     <figcaption class="small muted" style="margin-top:10px">
-      At $N=1$ the distribution is two spikes at $\pm\tfrac12$; as spins are added it
-      spreads ($\sigma_M \propto \sqrt N$) and smooths toward the Gaussian.
+      At $\ell=1$ the distribution is two spikes at $\pm\tfrac12$; as spins are added it
+      spreads ($\sigma_M \propto \sqrt \ell$) and smooths toward the Gaussian.
     </figcaption>
   </section>
 
@@ -164,7 +168,7 @@
         <tr><td>variance of M</td><td id="rd-var">–</td><td id="rd-var-t">–</td></tr>
         <tr><td>skewness</td><td id="rd-skew">–</td><td id="rd-skew-t">–</td></tr>
         <tr><td>max |ECDF − Φ| (Kolmogorov)</td><td id="rd-ks">–</td><td class="muted">→ 0</td></tr>
-        <tr><td>σ_M / N</td><td id="rd-relw">–</td><td id="rd-relw-t">–</td></tr>
+        <tr><td>σ_M / ℓ</td><td id="rd-relw">–</td><td id="rd-relw-t">–</td></tr>
       </tbody>
     </table>
   </section>

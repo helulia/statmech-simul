@@ -1,5 +1,6 @@
 // Spins / CLT page wiring: controls -> engine -> plots.
-// All data derive deterministically from (seed, N, p, samples); "Resample"
+// Conventions: l = length of one chain (spins), N = number of chains sampled.
+// All data derive deterministically from (seed, l, p, N); "Resample"
 // draws a fresh random seed (shown in the seed box, so any view is reproducible).
 
 import { mulberry32, parseSeed, randomSeed } from '../../engine/rng.js';
@@ -16,8 +17,8 @@ const $ = (id) => document.getElementById(id);
 
 // ---------- state ----------
 const state = {
-  N: 100,
-  S: 10000,
+  l: 100,      // chain length
+  nSamp: 10000, // chains sampled (N)
   seed: 20261111,
   biased: false,
   p: 0.5,
@@ -36,23 +37,22 @@ function fmt(x, sig = 4) {
 }
 
 // ---------- controls ----------
-const ctlN = $('ctl-n'), ctlS = $('ctl-s'), ctlSeed = $('ctl-seed'), ctlP = $('ctl-p');
-const nFromSlider = (v) => Math.max(1, Math.min(10000, Math.round(10 ** (v / 25))));
-const sFromSlider = (v) => Math.max(100, Math.min(100000, Math.round(10 ** (2 + v / 20))));
-const sliderFromN = (N) => Math.round(25 * Math.log10(N));
-const sliderFromS = (S) => Math.round(20 * (Math.log10(S) - 2));
+const ctlL = $('ctl-l'), ctlNs = $('ctl-ns'), ctlSeed = $('ctl-seed'), ctlP = $('ctl-p');
+const lFromSlider = (v) => Math.max(1, Math.min(10000, Math.round(10 ** (v / 25))));
+const nSampFromSlider = (v) => Math.max(100, Math.min(100000, Math.round(10 ** (2 + v / 20))));
+const sliderFromL = (l) => Math.round(25 * Math.log10(l));
 
 function readControls() {
-  state.N = nFromSlider(+ctlN.value);
-  state.S = sFromSlider(+ctlS.value);
+  state.l = lFromSlider(+ctlL.value);
+  state.nSamp = nSampFromSlider(+ctlNs.value);
   state.seed = parseSeed(ctlSeed.value);
   state.p = +ctlP.value;
-  $('out-n').textContent = fmtInt(state.N);
-  $('out-s').textContent = fmtInt(state.S);
+  $('out-l').textContent = fmtInt(state.l);
+  $('out-ns').textContent = fmtInt(state.nSamp);
   $('out-p').textContent = state.p.toFixed(3);
 }
 
-function setN(N) { ctlN.value = sliderFromN(N); }
+function setL(l) { ctlL.value = sliderFromL(l); }
 function setBiased(on, p = 0.5) {
   state.biased = on;
   $('btn-biased').setAttribute('aria-pressed', String(on));
@@ -72,7 +72,7 @@ const plotC = createPlot($('plotC'), { height: 280 });
 const plotAnim = createPlot($('plotAnim'), { height: 260 });
 
 plotA.setLabels('$M$', '$\\Pr(M)$');
-plotB.setLabels('$M/N$', '$\\Pr(M/N)$ (density)');
+plotB.setLabels('$M/\\ell$', '$\\Pr(M/\\ell)$ (density)');
 plotC.setLabels('$Z = (M-\\langle M\\rangle)/\\sigma_M$', 'density');
 plotAnim.setLabels('$M$', '$\\Pr(M)$');
 
@@ -85,7 +85,7 @@ function gaussCurve(x0, x1, mu, sigma, scale, n = 200) {
   return { xs, ys };
 }
 
-function renderPlotA(hist, mom, N, p) {
+function renderPlotA(hist, mom, l, p) {
   const { centers, probs, spacing } = hist;
   const pad = 0.75 * spacing;
   let x0, x1;
@@ -95,7 +95,7 @@ function renderPlotA(hist, mom, N, p) {
   } else {
     x0 = mom.mean - 2; x1 = mom.mean + 2;
   }
-  const exact = exactPrM(N, p);
+  const exact = exactPrM(l, p);
   const exX = [], exY = [];
   let binMax = 0;
   for (let k = 0; k < exact.M.length; k++) {
@@ -127,30 +127,30 @@ function renderPlotA(hist, mom, N, p) {
 }
 
 function renderPlotB(p) {
-  const Ns = [100, 1000, 10000];
-  const mixes = [40, 65, 100]; // grey lightness per N (fg mixed into bg)
-  const mu = p - 0.5; // mean of M/N
-  const halfW = Math.max(0.25, 4.5 * Math.sqrt(p * (1 - p) / Ns[0]));
+  const Ls = [100, 1000, 10000];
+  const mixes = [40, 65, 100]; // grey lightness per l (fg mixed into bg)
+  const mu = p - 0.5; // mean of M/l
+  const halfW = Math.max(0.25, 4.5 * Math.sqrt(p * (1 - p) / Ls[0]));
   const x0 = mu - halfW, x1 = mu + halfW;
   let yMax = 0;
-  const curves = Ns.map((N) => {
-    const { M, pr } = exactPrM(N, p);
+  const curves = Ls.map((l) => {
+    const { M, pr } = exactPrM(l, p);
     const xs = [], ys = [];
     for (let k = 0; k < M.length; k++) {
-      const x = M[k] / N;
-      if (x >= x0 && x <= x1) { xs.push(x); ys.push(pr[k] * N); } // density: spacing 1/N
+      const x = M[k] / l;
+      if (x >= x0 && x <= x1) { xs.push(x); ys.push(pr[k] * l); } // density: spacing 1/l
     }
     yMax = Math.max(yMax, ...ys);
-    return { N, xs, ys };
+    return { l, xs, ys };
   });
   plotB.setDomain(x0, x1, 0, yMax * 1.12);
   plotB.axes({ xTicks: niceTicks(x0, x1, 5) });
-  curves.forEach(({ N, xs, ys }, i) => {
+  curves.forEach(({ l, xs, ys }, i) => {
     const color = `color-mix(in srgb, var(--fg) ${mixes[i]}%, var(--bg))`;
-    plotB.line(`curve-${N}`, xs, ys, { color, width: 1.5 });
-    const sig = Math.sqrt(p * (1 - p) / N);
+    plotB.line(`curve-${l}`, xs, ys, { color, width: 1.5 });
+    const sig = Math.sqrt(p * (1 - p) / l);
     const peak = Math.max(...ys);
-    plotB.label(`lab-${N}`, `N = ${fmtInt(N)}`, mu + 1.6 * sig, peak * 0.82, { color });
+    plotB.label(`lab-${l}`, `ℓ = ${fmtInt(l)}`, mu + 1.6 * sig, peak * 0.82, { color });
   });
 }
 
@@ -166,7 +166,7 @@ function renderPlotC(samples, mom) {
   msg.hidden = true;
   const z = new Float64Array(samples.length);
   for (let i = 0; i < samples.length; i++) z[i] = (samples[i] - mom.mean) / mom.sigma;
-  const histM = latticeHistogram(samples, state.N, SPIN);
+  const histM = latticeHistogram(samples, state.l, SPIN);
   const dz = histM.spacing / mom.sigma;
   const zc = Array.from(histM.centers, (c) => (c - mom.mean) / mom.sigma);
   const dens = Array.from(histM.probs, (pr) => pr / dz);
@@ -212,7 +212,7 @@ function renderAnim(n) {
     const g = gaussCurve(x0, x1, mom.mean, mom.sigma, hist.spacing);
     plotAnim.line('gauss', g.xs, g.ys, { width: 1.5 });
   } else plotAnim.remove('gauss');
-  $('anim-n').textContent = `N = ${n}`;
+  $('anim-n').textContent = `ℓ = ${n}`;
   $('anim-scrub').value = n;
 }
 
@@ -237,16 +237,16 @@ $('anim-play').addEventListener('click', () => {
 $('anim-scrub').addEventListener('input', (e) => { stopPlay(); renderAnim(+e.target.value); });
 
 // ---------- readouts ----------
-function renderReadouts(samples, z, mom, N, p) {
+function renderReadouts(samples, z, mom, l, p) {
   $('rd-mean').textContent = fmt(mean(samples));
   $('rd-mean-t').textContent = fmt(mom.mean);
   $('rd-var').textContent = fmt(variance(samples));
-  $('rd-var-t').textContent = `${fmt(mom.variance)}  (Np(1−p))`;
+  $('rd-var-t').textContent = `${fmt(mom.variance)}  (ℓp(1−p))`;
   $('rd-skew').textContent = fmt(skewness(samples));
-  $('rd-skew-t').textContent = fmt(skewTheory(N, p));
+  $('rd-skew-t').textContent = fmt(skewTheory(l, p));
   $('rd-ks').textContent = z ? fmt(kolmogorovDistance(z)) : '–';
-  $('rd-relw').textContent = fmt(mom.sigma / N);
-  $('rd-relw-t').textContent = p === 0.5 ? `1/(2√N) = ${fmt(0.5 / Math.sqrt(N))}` : fmt(mom.sigma / N);
+  $('rd-relw').textContent = fmt(mom.sigma / l);
+  $('rd-relw-t').textContent = p === 0.5 ? `1/(2√ℓ) = ${fmt(0.5 / Math.sqrt(l))}` : fmt(mom.sigma / l);
 }
 
 // ---------- main update ----------
@@ -257,30 +257,30 @@ function update({ plotBToo = true } = {}) {
   requestAnimationFrame(() => {
     rafPending = false;
     readControls();
-    const N = state.N, p = pEff();
-    const mom = moments(N, p);
+    const l = state.l, p = pEff();
+    const mom = moments(l, p);
     const rng = mulberry32(state.seed);
 
-    const chain = sampleChain(rng, N, p);
+    const chain = sampleChain(rng, l, p);
     const { nUp, nDown, M } = chainMagnetization(chain, SPIN);
     renderChain(chain);
     $('ro-nup').textContent = fmtInt(nUp);
     $('ro-ndown').textContent = fmtInt(nDown);
-    $('ro-m').textContent = (N % 2 ? M.toFixed(1) : String(M));
+    $('ro-m').textContent = (l % 2 ? M.toFixed(1) : String(M));
 
-    const samples = sampleMs(rng, N, p, state.S, SPIN);
-    const hist = latticeHistogram(samples, N, SPIN);
-    renderPlotA(hist, mom, N, p);
+    const samples = sampleMs(rng, l, p, state.nSamp, SPIN);
+    const hist = latticeHistogram(samples, l, SPIN);
+    renderPlotA(hist, mom, l, p);
     const z = renderPlotC(samples, mom);
-    renderReadouts(samples, z, mom, N, p);
+    renderReadouts(samples, z, mom, l, p);
     if (plotBToo) renderPlotB(p);
     renderAnim(+$('anim-scrub').value);
   });
 }
 
 // ---------- events ----------
-ctlN.addEventListener('input', () => update({ plotBToo: false }));
-ctlS.addEventListener('input', () => update({ plotBToo: false }));
+ctlL.addEventListener('input', () => update({ plotBToo: false }));
+ctlNs.addEventListener('input', () => update({ plotBToo: false }));
 ctlP.addEventListener('input', () => update());
 ctlSeed.addEventListener('change', () => update());
 $('btn-reseed').addEventListener('click', () => { ctlSeed.value = String(randomSeed()); update(); });
@@ -295,13 +295,13 @@ for (const [btn, key] of [['tog-binom', 'showBinom'], ['tog-gauss', 'showGauss']
   });
 }
 
-$('preset-a').addEventListener('click', () => { setBiased(false); setN(1); update(); });
+$('preset-a').addEventListener('click', () => { setBiased(false); setL(1); update(); });
 $('preset-b').addEventListener('click', () => {
   setBiased(false);
-  setN(nFromSlider(+ctlN.value) === 10 ? 1000 : 10);
+  setL(lFromSlider(+ctlL.value) === 10 ? 1000 : 10);
   update();
 });
-$('preset-c').addEventListener('click', () => { setBiased(true, 0.002); setN(1000); update(); });
+$('preset-c').addEventListener('click', () => { setBiased(true, 0.002); setL(1000); update(); });
 
 // ---------- explanation (clt.md) ----------
 loadMarkdown($('explain'), './clt.md');

@@ -24,11 +24,18 @@ function fmt(x, sig = 4) {
 }
 
 // ---------------- canonical section ----------------
-const chainView = createChainView($('spin-strip'), $('spin-raster'));
-const plotDist = createPlot($('plotDist'), { height: 280 });
-const plotCurves = createPlot($('plotCurves'), { height: 280 });
-plotDist.setLabels('$M$', '$\\Pr(M)$');
-plotCurves.setLabels('$\\beta h$', 'normalized');
+// Disabled for now: set CANONICAL_ENABLED = true and remove the `hidden`
+// attribute from #canonical-section in ensembles.html to bring it back.
+const CANONICAL_ENABLED = false;
+
+let chainView, plotDist, plotCurves;
+if (CANONICAL_ENABLED) {
+  chainView = createChainView($('spin-strip'), $('spin-raster'));
+  plotDist = createPlot($('plotDist'), { height: 280 });
+  plotCurves = createPlot($('plotCurves'), { height: 280 });
+  plotDist.setLabels('$M$', '$\\Pr(M)$');
+  plotCurves.setLabels('$\\beta h$', 'normalized');
+}
 
 const nFromSlider = (v) => Math.max(1, Math.min(10000, Math.round(10 ** (v / 25))));
 const sFromSlider = (v) => Math.max(100, Math.min(100000, Math.round(10 ** (2 + v / 20))));
@@ -142,9 +149,11 @@ function updateCanonical() {
   });
 }
 
-for (const id of ['ctl-bh', 'ctl-n', 'ctl-s']) $(id).addEventListener('input', updateCanonical);
-$('ctl-seed').addEventListener('change', updateCanonical);
-$('btn-resample').addEventListener('click', () => { $('ctl-seed').value = String(randomSeed()); updateCanonical(); });
+if (CANONICAL_ENABLED) {
+  for (const id of ['ctl-bh', 'ctl-n', 'ctl-s']) $(id).addEventListener('input', updateCanonical);
+  $('ctl-seed').addEventListener('change', updateCanonical);
+  $('btn-resample').addEventListener('click', () => { $('ctl-seed').value = String(randomSeed()); updateCanonical(); });
+}
 
 // ---------------- microcanonical section ----------------
 const plotS = createPlot($('plotS'), { height: 280 });
@@ -209,7 +218,7 @@ $('ctl-k').addEventListener('input', updateMicro);
 
 // ---------------- boot ----------------
 initTheme($('theme-toggle'));
-updateCanonical();
+if (CANONICAL_ENABLED) updateCanonical();
 updateMicro();
 loadMarkdown($('explain'), './ensembles.md');
 typeset(document.body);

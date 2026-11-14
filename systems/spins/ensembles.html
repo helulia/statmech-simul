@@ -29,12 +29,16 @@
     <button id="theme-toggle" aria-label="Toggle color theme">light</button>
   </header>
 
-  <h1>Spins in a field: two ensembles</h1>
+  <h1>Spins in a field: the microcanonical ensemble</h1>
   <p class="muted">The same chain of $N$ independent spins $s_i=\pm\tfrac12$, now with an
   energy $E = -h\,M = -h\sum_i s_i$. Units: $k_B = 1$ and $h$ sets the energy scale, so
   the only knob is the dimensionless $\beta h$.</p>
 
-  <!-- ================= canonical ================= -->
+  <!-- ================= canonical (disabled for now) =================
+       To re-enable: remove `hidden` from #canonical-section below, set
+       CANONICAL_ENABLED = true in ensembles.js, and restore the
+       "two ensembles" h1 above. -->
+  <div id="canonical-section" hidden>
   <h2>Canonical: fixed temperature, fluctuating energy</h2>
   <p class="muted" style="max-width:68ch">A heat bath at inverse temperature $\beta$ makes each microstate
   appear with weight $e^{-\beta E_\nu}$, so each spin is up with probability
@@ -120,6 +124,8 @@
       </tbody>
     </table>
   </section>
+
+  </div><!-- /#canonical-section -->
 
   <!-- ================= microcanonical ================= -->
   <h2>Microcanonical: fixed energy, counted states</h2>
