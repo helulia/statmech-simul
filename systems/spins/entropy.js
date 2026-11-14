@@ -19,8 +19,8 @@ const MAX_STEPS = 4000;
 
 // ---------------- state ----------------
 const state = {
-  l: 10,
-  nEns: 100,
+  N: 10,  // spins per chain
+  L: 100, // chains in the ensemble
   init: 'up',
   speed: 4,
   seed: 20261111,
@@ -120,7 +120,7 @@ function record() {
 function reset() {
   stopPlay();
   rng = mulberry32(state.seed);
-  ens = createEnsemble(state.nEns, state.l, state.init, rng);
+  ens = createEnsemble(state.L, state.N, state.init, rng);
   history = { t: [], S: [], M: [] };
   record();
   renderAll();
@@ -155,20 +155,20 @@ $('btn-step').addEventListener('click', () => { stopPlay(); doSteps(1); });
 $('btn-reset').addEventListener('click', reset);
 
 // ---------------- controls ----------------
-const nEnsFromSlider = (v) => Math.max(10, Math.min(2000, Math.round(10 ** (1 + v / 20))));
+const LFromSlider = (v) => Math.max(10, Math.min(2000, Math.round(10 ** (1 + v / 20))));
 
 function readControls() {
-  state.l = +$('ctl-l').value;
-  state.nEns = nEnsFromSlider(+$('ctl-nens').value);
+  state.N = +$('ctl-n').value;
+  state.L = LFromSlider(+$('ctl-L').value);
   state.speed = +$('ctl-speed').value;
   state.seed = parseSeed($('ctl-seed').value);
-  $('out-l').textContent = state.l;
-  $('out-nens').textContent = fmtInt(state.nEns);
+  $('out-n').textContent = state.N;
+  $('out-L').textContent = fmtInt(state.L);
   $('out-speed').textContent = state.speed;
 }
 
-$('ctl-l').addEventListener('input', () => { readControls(); reset(); });
-$('ctl-nens').addEventListener('input', () => { readControls(); reset(); });
+$('ctl-n').addEventListener('input', () => { readControls(); reset(); });
+$('ctl-L').addEventListener('input', () => { readControls(); reset(); });
 $('ctl-speed').addEventListener('input', () => { readControls(); });
 $('ctl-seed').addEventListener('change', () => { readControls(); reset(); });
 

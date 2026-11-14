@@ -25,12 +25,30 @@ function fmt(x, sig = 4) {
 
 // ---------------- canonical section ----------------
 // Disabled for now: set CANONICAL_ENABLED = true and remove the `hidden`
-// attribute from #canonical-section in ensembles.html to bring it back.
+// attribute from #canonical-section in ensembles.html to bring it back
+// (and drop the fixed-parameters caption under the hero, which only
+// describes the static example below).
 const CANONICAL_ENABLED = false;
 
-let chainView, plotDist, plotCurves;
+// Example spin block: one sample chain shown in the hero even while the
+// canonical controls are hidden. Fixed parameters matching the hidden
+// controls' defaults: βh = 1, N = 100 spins, seed 20261111.
+const EXAMPLE = { bh: 1, N: 100, seed: 20261111 };
+const chainView = createChainView($('spin-strip'), $('spin-raster'));
+
+function renderExampleChain() {
+  const p = pUpCanonical(EXAMPLE.bh);
+  const chain = sampleChain(mulberry32(EXAMPLE.seed), EXAMPLE.N, p);
+  const { nUp, nDown, M } = chainMagnetization(chain, SPIN);
+  chainView.render(chain);
+  $('ro-nup').textContent = fmtInt(nUp);
+  $('ro-ndown').textContent = fmtInt(nDown);
+  $('ro-m').textContent = EXAMPLE.N % 2 ? M.toFixed(1) : String(M);
+  $('ro-pup').textContent = p.toFixed(4);
+}
+
+let plotDist, plotCurves;
 if (CANONICAL_ENABLED) {
-  chainView = createChainView($('spin-strip'), $('spin-raster'));
   plotDist = createPlot($('plotDist'), { height: 280 });
   plotCurves = createPlot($('plotCurves'), { height: 280 });
   plotDist.setLabels('$M$', '$\\Pr(M)$');
@@ -218,7 +236,7 @@ $('ctl-k').addEventListener('input', updateMicro);
 
 // ---------------- boot ----------------
 initTheme($('theme-toggle'));
-if (CANONICAL_ENABLED) updateCanonical();
+if (CANONICAL_ENABLED) updateCanonical(); else renderExampleChain();
 updateMicro();
 loadMarkdown($('explain'), './ensembles.md');
 typeset(document.body);

@@ -30,11 +30,11 @@
   </header>
 
   <h1>Entropy during equilibration</h1>
-  <p class="muted">An ensemble of $N$ independent chains of $\ell$ spins evolves in time:
+  <p class="muted">An ensemble of $L$ independent chains of $N$ spins evolves in time:
   each step, every chain picks one random spin and flips it with probability $\tfrac12$
   (the dynamics of numerical exercise 1). The Shannon entropy of the ensemble's
   magnetization distribution, $S(t) = -\sum_M \Pr(M)\log_2 \Pr(M)$, rises toward the
-  steady-state value where all $2^\ell$ microstates are equally likely.</p>
+  steady-state value where all $2^N$ microstates are equally likely.</p>
 
   <!-- hero: the ensemble itself -->
   <section class="panel">
@@ -58,12 +58,12 @@
   <section class="panel" style="margin-top:20px">
     <div class="controls">
       <div class="ctl">
-        <label for="ctl-l">ℓ — spins per chain</label>
-        <div class="row"><input type="range" id="ctl-l" min="2" max="20" step="1" value="10"><output id="out-l">10</output></div>
+        <label for="ctl-n">N — spins per chain</label>
+        <div class="row"><input type="range" id="ctl-n" min="2" max="20" step="1" value="10"><output id="out-n">10</output></div>
       </div>
       <div class="ctl">
-        <label for="ctl-nens">N — chains in the ensemble</label>
-        <div class="row"><input type="range" id="ctl-nens" min="0" max="46" step="1" value="20"><output id="out-nens">100</output></div>
+        <label for="ctl-L">L — chains in the ensemble</label>
+        <div class="row"><input type="range" id="ctl-L" min="0" max="46" step="1" value="20"><output id="out-L">100</output></div>
       </div>
       <div class="ctl">
         <label>initial condition</label>

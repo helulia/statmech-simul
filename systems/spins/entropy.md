@@ -3,14 +3,14 @@
 The ensemble starts in a single known macrostate — all chains all-up, so $\Pr(M)$ is one
 spike and $S = -\sum_M \Pr(M)\log_2\Pr(M) = 0$: complete knowledge, zero entropy. The
 random single-spin flips are **symmetric** (every microstate transition is as likely as
-its reverse), so the dynamics drift toward the uniform distribution over all $2^\ell$
+its reverse), so the dynamics drift toward the uniform distribution over all $2^N$
 microstates. There $\Pr(M)$ is the exact binomial of the CLT page, and the entropy
 saturates at its steady-state value — this is the second law, $dS \ge 0$ on average,
 emerging from reversible microscopic rules.
 
 Three things to try: start from *all ↓* ($\bar M$ relaxes from the other side, $S(t)$ is
 the same — entropy does not care about the sign of $M$); start from *random* (the ensemble
-is born equilibrated: $S$ starts at the plateau); shrink the ensemble $N$ (the sampled
+is born equilibrated: $S$ starts at the plateau); shrink the ensemble $L$ (the sampled
 $\Pr(M)$ gets noisy and $S(t)$ fluctuates *below* the steady line — a finite-sample
 effect, not physics).
 

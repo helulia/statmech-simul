@@ -34,20 +34,10 @@
   energy $E = -h\,M = -h\sum_i s_i$. Units: $k_B = 1$ and $h$ sets the energy scale, so
   the only knob is the dimensionless $\beta h$.</p>
 
-  <!-- ================= canonical (disabled for now) =================
-       To re-enable: remove `hidden` from #canonical-section below, set
-       CANONICAL_ENABLED = true in ensembles.js, and restore the
-       "two ensembles" h1 above. -->
-  <div id="canonical-section" hidden>
-  <h2>Canonical: fixed temperature, fluctuating energy</h2>
-  <p class="muted" style="max-width:68ch">A heat bath at inverse temperature $\beta$ makes each microstate
-  appear with weight $e^{-\beta E_\nu}$, so each spin is up with probability
-  $p_\uparrow = \dfrac{1}{1+e^{-\beta h}}$ — this is the promised link $p \leftrightarrow \beta h$
-  from the CLT page.</p>
-
+  <!-- hero: example spin block (stays visible while the canonical section is hidden) -->
   <section class="panel" id="hero">
     <div style="display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:12px">
-      <h3 style="margin:0">One sample at this $\beta h$</h3>
+      <h3 style="margin:0">One sample chain — example</h3>
       <span style="display:inline-flex; gap:16px">
         <span class="chip up"><span class="swatch"></span><span class="glyph">↑</span> up (+½)</span>
         <span class="chip down"><span class="swatch"></span><span class="glyph">↓</span> down (−½)</span>
@@ -61,7 +51,23 @@
       <span>M = <span id="ro-m">–</span></span>
       <span>p↑ = <span id="ro-pup">–</span></span>
     </div>
+    <p class="small muted" style="margin:10px 0 0">
+      Example configuration: $N = 100$ spins at $\beta h = 1$, so
+      $p_\uparrow = 1/(1+e^{-1}) \approx 0.73$ — the field tilts the chain toward ↑.
+      The $\beta h$ controls return with the canonical section.
+    </p>
   </section>
+
+  <!-- ================= canonical (disabled for now) =================
+       To re-enable: remove `hidden` from #canonical-section below, set
+       CANONICAL_ENABLED = true in ensembles.js, and restore the
+       "two ensembles" h1 above. -->
+  <div id="canonical-section" hidden>
+  <h2>Canonical: fixed temperature, fluctuating energy</h2>
+  <p class="muted" style="max-width:68ch">A heat bath at inverse temperature $\beta$ makes each microstate
+  appear with weight $e^{-\beta E_\nu}$, so each spin is up with probability
+  $p_\uparrow = \dfrac{1}{1+e^{-\beta h}}$ — this is the promised link $p \leftrightarrow \beta h$
+  from the CLT page.</p>
 
   <section class="panel" style="margin-top:20px">
     <div class="controls">
@@ -74,7 +80,7 @@
         <div class="row"><input type="range" id="ctl-n" min="0" max="100" step="1" value="50"><output id="out-n">100</output></div>
       </div>
       <div class="ctl">
-        <label for="ctl-s">samples</label>
+        <label for="ctl-s">L — chains sampled</label>
         <div class="row"><input type="range" id="ctl-s" min="0" max="60" step="1" value="40"><output id="out-s">10 000</output></div>
       </div>
       <div class="ctl">
