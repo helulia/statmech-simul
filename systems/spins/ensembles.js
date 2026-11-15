@@ -25,26 +25,88 @@ function fmt(x, sig = 4) {
 
 // ---------------- canonical section ----------------
 // Disabled for now: set CANONICAL_ENABLED = true and remove the `hidden`
-// attribute from #canonical-section in ensembles.html to bring it back
-// (and drop the fixed-parameters caption under the hero, which only
-// describes the static example below).
+// attribute from #canonical-section in ensembles.html to bring it back.
 const CANONICAL_ENABLED = false;
 
-// Example spin block: one sample chain shown in the hero even while the
-// canonical controls are hidden. Fixed parameters matching the hidden
-// controls' defaults: βh = 1, N = 100 spins, seed 20261111.
-const EXAMPLE = { bh: 1, N: 100, seed: 20261111 };
+// Interactive example spin block, shown in the hero while the canonical
+// section is hidden. N and N↓ come from the microcanonical sliders below;
+// βh has its own slider. "play" runs heat-bath (Glauber) single-spin
+// dynamics with E = -h·M (user-confirmed flip rule): each update one random
+// spin is set ↑ with p↑ = 1/(1+e^{-βh}), independent of its current state,
+// so the chain relaxes to the canonical distribution at the chosen βh.
+// If the canonical section is re-enabled, merge or remove this block —
+// updateCanonical also renders into the same hero elements.
 const chainView = createChainView($('spin-strip'), $('spin-raster'));
+const EX_SEED = 20261111;
+const exFlipsPerFrame = (N) => Math.max(1, Math.round(N / 20)); // ~20 frames per sweep
+let exChain = new Uint8Array(0);
+let exRng = mulberry32(EX_SEED);
+let exPlaying = false;
 
-function renderExampleChain() {
-  const p = pUpCanonical(EXAMPLE.bh);
-  const chain = sampleChain(mulberry32(EXAMPLE.seed), EXAMPLE.N, p);
-  const { nUp, nDown, M } = chainMagnetization(chain, SPIN);
-  chainView.render(chain);
+function exParams() { // N and N↓ as set by the microcanonical sliders
+  const N = nFromSlider(+$('ctl-mn').value);
+  const nDown = Math.max(0, Math.min(N, Math.round((N * +$('ctl-k').value) / 1000)));
+  return { N, nDown };
+}
+
+function exRender() {
+  chainView.render(exChain);
+  const { nUp, nDown, M } = chainMagnetization(exChain, SPIN);
   $('ro-nup').textContent = fmtInt(nUp);
   $('ro-ndown').textContent = fmtInt(nDown);
-  $('ro-m').textContent = EXAMPLE.N % 2 ? M.toFixed(1) : String(M);
-  $('ro-pup').textContent = p.toFixed(4);
+  $('ro-m').textContent = exChain.length % 2 ? M.toFixed(1) : String(M);
+  $('ro-pup').textContent = pUpCanonical(+$('ctl-exbh').value).toFixed(4);
+}
+
+function exStop() {
+  exPlaying = false;
+  $('btn-ex-play').textContent = '▶ play';
+}
+
+// Rebuild the start configuration: all up, then N↓ spins flipped down at
+// random distinct positions (partial Fisher–Yates), seeded by (N, N↓) so a
+// given slider setting always shows the same microstate.
+function exReset() {
+  exStop();
+  const { N, nDown } = exParams();
+  exRng = mulberry32((EX_SEED ^ Math.imul(N, 2654435761) ^ nDown) >>> 0);
+  exChain = new Uint8Array(N).fill(1);
+  const idx = new Uint32Array(N);
+  for (let i = 0; i < N; i++) idx[i] = i;
+  for (let i = 0; i < nDown; i++) {
+    const j = i + Math.floor(exRng() * (N - i));
+    const t = idx[i]; idx[i] = idx[j]; idx[j] = t;
+    exChain[idx[i]] = 0;
+  }
+  exRender();
+}
+
+function exFrame() {
+  if (!exPlaying) return;
+  const p = pUpCanonical(+$('ctl-exbh').value);
+  const N = exChain.length;
+  for (let i = 0, n = exFlipsPerFrame(N); i < n; i++) {
+    exChain[Math.floor(exRng() * N)] = exRng() < p ? 1 : 0; // heat-bath update
+  }
+  exRender();
+  requestAnimationFrame(exFrame);
+}
+
+if (!CANONICAL_ENABLED) {
+  $('btn-ex-play').addEventListener('click', () => {
+    if (exPlaying) { exStop(); return; }
+    exPlaying = true;
+    $('btn-ex-play').textContent = '⏸ pause';
+    requestAnimationFrame(exFrame);
+  });
+  $('btn-ex-reset').addEventListener('click', exReset);
+  $('ctl-exbh').addEventListener('input', () => {
+    $('out-exbh').textContent = (+$('ctl-exbh').value).toFixed(2);
+    if (!exPlaying) exRender(); // refresh the p↑ readout
+  });
+  // the microcanonical sliders also drive the example block
+  $('ctl-mn').addEventListener('input', exReset);
+  $('ctl-k').addEventListener('input', exReset);
 }
 
 let plotDist, plotCurves;
@@ -236,7 +298,7 @@ $('ctl-k').addEventListener('input', updateMicro);
 
 // ---------------- boot ----------------
 initTheme($('theme-toggle'));
-if (CANONICAL_ENABLED) updateCanonical(); else renderExampleChain();
+if (CANONICAL_ENABLED) updateCanonical(); else exReset();
 updateMicro();
 loadMarkdown($('explain'), './ensembles.md');
 typeset(document.body);

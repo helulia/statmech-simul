@@ -34,10 +34,10 @@
   energy $E = -h\,M = -h\sum_i s_i$. Units: $k_B = 1$ and $h$ sets the energy scale, so
   the only knob is the dimensionless $\beta h$.</p>
 
-  <!-- hero: example spin block (stays visible while the canonical section is hidden) -->
+  <!-- hero: interactive example spin block (stays visible while the canonical section is hidden) -->
   <section class="panel" id="hero">
     <div style="display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:12px">
-      <h3 style="margin:0">One sample chain — example</h3>
+      <h3 style="margin:0">The example chain — play with the field</h3>
       <span style="display:inline-flex; gap:16px">
         <span class="chip up"><span class="swatch"></span><span class="glyph">↑</span> up (+½)</span>
         <span class="chip down"><span class="swatch"></span><span class="glyph">↓</span> down (−½)</span>
@@ -49,12 +49,29 @@
       <span>N↑ = <span class="up-val" id="ro-nup">–</span></span>
       <span>N↓ = <span class="down-val" id="ro-ndown">–</span></span>
       <span>M = <span id="ro-m">–</span></span>
-      <span>p↑ = <span id="ro-pup">–</span></span>
+      <span>p↑(βh) = <span id="ro-pup">–</span></span>
+    </div>
+    <div class="controls" style="margin-top:14px">
+      <div class="ctl">
+        <label for="ctl-exbh">βh — external field</label>
+        <div class="row"><input type="range" id="ctl-exbh" min="-6" max="6" step="0.05" value="1"><output id="out-exbh">1.00</output></div>
+      </div>
+      <div class="ctl">
+        <label>&nbsp;</label>
+        <div class="row">
+          <button id="btn-ex-play" class="primary">▶ play</button>
+          <button id="btn-ex-reset">reset</button>
+        </div>
+      </div>
     </div>
     <p class="small muted" style="margin:10px 0 0">
-      Example configuration: $N = 100$ spins at $\beta h = 1$, so
-      $p_\uparrow = 1/(1+e^{-1}) \approx 0.73$ — the field tilts the chain toward ↑.
-      The $\beta h$ controls return with the canonical section.
+      The block shows the $N$ spins set by the sliders below; $N_\downarrow$ sets how many
+      start down (random positions, seeded). <strong>play</strong> runs heat-bath dynamics
+      in the field: each update one random spin is set ↑ with probability
+      $p_\uparrow = 1/(1+e^{-\beta h})$, so the chain relaxes from the microcanonical start
+      toward the canonical bias — $\beta h > 0$ pulls spins ↑, $\beta h &lt; 0$ pulls them ↓,
+      $\beta h = 0$ is the unbiased coin. <strong>reset</strong> restores the slider
+      configuration.
     </p>
   </section>
 
